@@ -42,6 +42,13 @@ function renderMarkdown(text) {
   return <div className="md-container">{elements}</div>;
 }
 
+function getUploadUrl(storagePath) {
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "/api";
+  const appBase = apiBase.endsWith("/api") ? apiBase.slice(0, -4) : apiBase;
+  const normalizedPath = String(storagePath || "").replace(/\\/g, "/").replace(/^\/+/, "");
+  return `${appBase || ""}/${normalizedPath}`;
+}
+
 export default function StudyMaterials() {
   const [courses, setCourses] = useState([]);
   const [courseId, setCourseId] = useState("");
@@ -406,7 +413,7 @@ export default function StudyMaterials() {
                   </h3>
                   <div className="guides-list">
                     {uploadedMaterials.map((material) => {
-                      const downloadUrl = `${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}/${material.storagePath.replace(/\\/g, "/")}`;
+                      const downloadUrl = getUploadUrl(material.storagePath);
                       return (
                         <a
                           key={material._id}
