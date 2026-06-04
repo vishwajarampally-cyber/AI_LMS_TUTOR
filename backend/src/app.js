@@ -29,10 +29,28 @@ const allowedOrigins = [
   "http://127.0.0.1:5173"
 ];
 
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    const isHttps = protocol === "https:";
+    const isProjectVercelHost =
+      hostname === "ai-lms-tutor.vercel.app" ||
+      hostname.startsWith("ai-lms-tutor-") ||
+      hostname.startsWith("lms-ai-tutor-");
+
+    return isHttps && hostname.endsWith(".vercel.app") && isProjectVercelHost;
+  } catch {
+    return false;
+  }
+}
+
 app.use(helmet());
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true
