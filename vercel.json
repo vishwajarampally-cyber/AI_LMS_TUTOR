@@ -1,33 +1,25 @@
 {
   "version": 2,
-  "builds": [
+  "installCommand": "npm --prefix frontend install && npm --prefix backend install",
+  "buildCommand": "npm --prefix frontend run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
     {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "source": "/api/(.*)",
+      "destination": "/backend/api/index.js"
     },
     {
-      "src": "backend/api/index.js",
-      "use": "@vercel/node"
+      "source": "/health",
+      "destination": "/backend/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/api/index.js"
-    },
-    {
-      "src": "/health",
-      "dest": "backend/api/index.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/index.html"
+  "functions": {
+    "backend/api/index.js": {
+      "maxDuration": 60
     }
-  ]
+  }
 }
