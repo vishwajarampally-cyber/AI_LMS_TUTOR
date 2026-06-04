@@ -33,21 +33,27 @@ flowchart LR
 ## Folder Structure
 
 ```text
+api/
 frontend/
 backend/
 agents/
 rag/
 uploads/
 docs/
+package.json
+vercel.json
 .env.example
 README.md
 ```
 
 The root `agents/` and `rag/` directories contain architecture notes. Runtime implementation lives in `backend/src/agents` and `backend/src/rag`.
+The root `api/index.js` exposes the Express backend as a Vercel serverless function, while Vercel builds the React app from `frontend/` and serves it from the same project.
 
 ## Environment Variables
 
-Copy `.env.example` into `backend/.env` and `frontend/.env`.
+For Vercel, add the server-side variables from `.env.example` to the single root Vercel project. The frontend uses `/api` by default in production, so you usually do not need to set `VITE_API_BASE_URL` on Vercel.
+
+For local development, copy `.env.example` to `backend/.env`. If you run Vite and the backend as separate dev servers, set `VITE_API_BASE_URL=http://localhost:5000/api` in `frontend/.env`.
 
 ```env
 MONGODB_URI=
@@ -56,25 +62,22 @@ GROQ_API_KEY=
 PINECONE_API_KEY=
 PINECONE_INDEX=
 FRONTEND_URL=
-VITE_API_BASE_URL=
+VITE_API_BASE_URL=/api
 ```
 
 ## Local Setup
 
-Install backend dependencies:
+Install all dependencies from the project root:
 
 ```bash
-cd backend
 npm install
-npm run dev
 ```
 
-Install frontend dependencies:
+Run the backend and frontend in separate terminals:
 
 ```bash
-cd frontend
-npm install
-npm run dev
+npm run dev:backend
+npm run dev:frontend
 ```
 
 Backend defaults to `http://localhost:5000`. Frontend defaults to Vite's local URL.
@@ -114,18 +117,14 @@ The backend records accuracy, relevance, faithfulness, hallucination rate, laten
 
 ## Deployment
 
-### Backend on Vercel
+Deploy the repository root as one Vercel project.
 
-1. Create a Vercel project from `backend/`.
-2. Add environment variables from `.env.example`.
-3. Ensure `vercel.json` points to `api/index.js`.
+1. Import the repository root into Vercel.
+2. Keep the root `vercel.json`.
+3. Add required environment variables from `.env.example`.
 4. Deploy.
 
-### Frontend on Vercel
-
-1. Create a Vercel project from `frontend/`.
-2. Set `VITE_API_BASE_URL` to your deployed backend URL.
-3. Deploy with build command `npm run build`.
+Vercel runs `npm install`, builds the frontend with `npm run build`, serves `frontend/dist`, and routes `/api/*` plus `/health` to the Express API in `api/index.js`.
 
 ### MongoDB Atlas
 
