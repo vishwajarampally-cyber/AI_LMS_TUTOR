@@ -1,16 +1,16 @@
 {
   "version": 2,
-  "installCommand": "npm --prefix frontend install && npm --prefix backend install",
-  "buildCommand": "npm --prefix frontend install && npm --prefix frontend run build",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/api/index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/health",
-      "destination": "/backend/api/index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/(.*)",
@@ -18,7 +18,7 @@
     }
   ],
   "functions": {
-    "backend/api/index.js": {
+    "api/index.js": {
       "maxDuration": 60
     }
   }
