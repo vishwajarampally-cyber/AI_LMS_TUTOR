@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.5",
+    "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.1.1",
-    "lucide-react": "^0.468.0"
+    "vite": "^6.0.5"
   },
-  "devDependencies": {}
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.61.0"
+  }
 }
