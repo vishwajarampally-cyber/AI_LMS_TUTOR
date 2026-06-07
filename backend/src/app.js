@@ -1,3 +1,5 @@
+import fs from "fs";
+import os from "os";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -18,6 +20,8 @@ import auditRoutes from "./routes/audit.routes.js";
 import feedbackRoutes from "./routes/feedback.routes.js";
 import path from "path";
 import studyMaterialRoutes from "./routes/studyMaterial.routes.js";
+import interviewRoutes from "./routes/interview.routes.js";
+import resumeRoutes from "./routes/resume.routes.js";
 
 dotenv.config();
 
@@ -35,6 +39,11 @@ function isAllowedOrigin(origin) {
 
   try {
     const { hostname, protocol } = new URL(origin);
+    const isLocalDevOrigin =
+      (protocol === "http:" || protocol === "https:") &&
+      ["localhost", "127.0.0.1", "::1"].includes(hostname);
+    if (process.env.NODE_ENV !== "production" && isLocalDevOrigin) return true;
+
     const isHttps = protocol === "https:";
     const isProjectVercelHost =
       hostname === "ai-lms-tutor.vercel.app" ||
@@ -47,6 +56,9 @@ function isAllowedOrigin(origin) {
   }
 }
 
+const uploadDirectory = process.env.UPLOAD_DIR || (process.env.VERCEL ? path.join(os.tmpdir(), "uploads") : path.join(process.cwd(), "uploads"));
+fs.mkdirSync(uploadDirectory, { recursive: true });
+
 app.use(helmet());
 app.use(cors({
   origin(origin, callback) {
@@ -57,7 +69,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploads", express.static(uploadDirectory));
 app.use(generalLimiter);
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
@@ -77,6 +89,8 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/audit-logs", auditRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/study-materials", studyMaterialRoutes);
+app.use("/api/interviews", interviewRoutes);
+app.use("/api/resumes", resumeRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

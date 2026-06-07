@@ -65,16 +65,29 @@ router.post(
   authenticate,
   authorize("student", "faculty", "admin"),
   aiLimiter,
-  [body("courseId").notEmpty(), body("difficulty").optional().customSanitizer(v => typeof v === "string" ? v.toLowerCase() : v).isIn(["easy", "medium", "hard"])],
+  [
+    body("courseId").notEmpty(),
+    body("difficulty").optional().customSanitizer(v => typeof v === "string" ? v.toLowerCase() : v).isIn(["easy", "medium", "hard"]),
+    body("topic").optional().trim()
+  ],
   validate,
   asyncHandler(async (req, res) => {
     const course = await Course.findById(req.body.courseId);
     if (!course) throw new ApiError(404, "Course not found");
     const lastAttempt = await QuizAttempt.findOne({ user: req.user._id, course: course._id }).sort({ createdAt: -1 });
     const difficulty = (req.body.difficulty || lastAttempt?.nextDifficulty || "medium").toLowerCase();
-    const payload = await generateAdaptiveQuiz({ courseTitle: course.title, topics: course.topics, difficulty });
+    
+    const selectedTopic = req.body.topic && req.body.topic !== "all" ? req.body.topic : null;
+    const topicsList = selectedTopic ? [selectedTopic] : course.topics;
+
+    const payload = await generateAdaptiveQuiz({ 
+      courseTitle: course.title, 
+      topics: topicsList, 
+      difficulty 
+    });
+    
     const quiz = await Quiz.create({ ...payload, course: course._id, user: req.user._id });
-    await writeAudit(req, "GENERATE_QUIZ", "Quiz", quiz._id, { course: course._id, difficulty });
+    await writeAudit(req, "GENERATE_QUIZ", "Quiz", quiz._id, { course: course._id, difficulty, topic: selectedTopic });
     res.status(201).json({ quiz });
   })
 );

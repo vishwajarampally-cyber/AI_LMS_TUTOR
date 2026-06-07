@@ -10,7 +10,7 @@ async function getEmbeddingPipeline() {
   if (!pipelineLoading) {
     pipelineLoading = pipeline(
       "feature-extraction",
-      process.env.EMBEDDING_MODEL || "Xenova/bge-large-en-v1.5"
+      process.env.EMBEDDING_MODEL || "Xenova/bge-large-multi-v1.0"
     ).then((loaded) => {
       embeddingPipeline = loaded;
       return loaded;

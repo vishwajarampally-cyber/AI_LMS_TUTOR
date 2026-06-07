@@ -1,24 +1,36 @@
 import fs from "fs/promises";
 import path from "path";
-import pdf from "pdf-parse";
 import mammoth from "mammoth";
 import JSZip from "jszip";
 
-export async function extractText(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
+// pdf-parse is a legacy CJS module; use dynamic import with explicit path for Node v26 ESM compat
+async function parsePdf(buffer) {
+  try {
+    // Try standard import first
+    const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js");
+    const result = await pdfParse(buffer);
+    return result.text || "";
+  } catch {
+    // Fallback: try index directly
+    const mod = await import("pdf-parse");
+    const pdfParse = mod.default || mod;
+    const result = await pdfParse(buffer);
+    return result.text || "";
+  }
+}
+
+export async function extractText(filePath, originalName = "") {
+  const ext = path.extname(originalName || filePath).toLowerCase();
   const buffer = await fs.readFile(filePath);
 
+  let text = "";
+
   if (ext === ".pdf") {
-    const parsed = await pdf(buffer);
-    return parsed.text;
-  }
-
-  if (ext === ".docx") {
+    text = await parsePdf(buffer);
+  } else if (ext === ".docx") {
     const parsed = await mammoth.extractRawText({ buffer });
-    return parsed.value;
-  }
-
-  if (ext === ".pptx") {
+    text = parsed.value || "";
+  } else if (ext === ".pptx") {
     const zip = await JSZip.loadAsync(buffer);
     const slideFiles = Object.keys(zip.files)
       .filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name))
@@ -30,12 +42,19 @@ export async function extractText(filePath) {
         ?.map((node) => node.replace(/<\/?a:t>/g, ""))
         .join(" ") || "";
     }));
-    return slides.join("\n\n");
+    text = slides.join("\n\n");
+  } else if (ext === ".ppt") {
+    text = "Legacy PPT files require conversion to PPTX before indexing.";
+  } else {
+    throw new Error("Unsupported file type");
   }
 
-  if (ext === ".ppt") {
-    return "Legacy PPT files require conversion to PPTX before indexing.";
+  const cleaned = String(text || "").trim();
+  if (!cleaned) {
+    throw new Error(
+      "No extractable text was found in this document. Please upload a searchable PDF or convert scanned pages to a text-based PDF before indexing."
+    );
   }
 
-  throw new Error("Unsupported file type");
+  return cleaned;
 }

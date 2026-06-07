@@ -15,6 +15,8 @@ import QuizCenter from "./pages/QuizCenter.jsx";
 import Reports from "./pages/Reports.jsx";
 import Settings from "./pages/Settings.jsx";
 import StudyMaterials from "./pages/StudyMaterials.jsx";
+import MockInterview from "./pages/MockInterview.jsx";
+import ResumeTailor from "./pages/ResumeTailor.jsx";
 import { useAuth } from "./state/AuthContext.jsx";
 
 export default function App() {
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="/tutor" element={<Tutor />} />
         <Route path="/quiz" element={<QuizCenter />} />
         <Route path="/study-materials" element={<StudyMaterials />} />
+        <Route path="/mock-interview" element={<MockInterview />} />
+        <Route path="/resume-tailor" element={<ResumeTailor />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
       </Route>

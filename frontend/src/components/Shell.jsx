@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, ClipboardList, Home, LogOut, Settings, Library } from "lucide-react";
+import { BarChart3, BookOpen, Bot, ClipboardList, Home, LogOut, Settings, Library, Briefcase, FileCheck } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../state/AuthContext.jsx";
 
@@ -14,6 +14,8 @@ export default function Shell() {
           <NavLink to="/tutor"><Bot size={18} />AI Tutor</NavLink>
           <NavLink to="/quiz"><ClipboardList size={18} />Quiz Center</NavLink>
           <NavLink to="/study-materials"><Library size={18} />Study Materials</NavLink>
+          <NavLink to="/mock-interview"><Briefcase size={18} />Mock Interview</NavLink>
+          <NavLink to="/resume-tailor"><FileCheck size={18} />Resume Tailor</NavLink>
           <NavLink to="/reports"><BarChart3 size={18} />Reports</NavLink>
           <NavLink to="/settings"><Settings size={18} />Settings</NavLink>
         </nav>

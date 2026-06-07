@@ -2,9 +2,28 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { getChatModel } from "../config/ai.js";
 import { retrieveRelevantContent } from "./retrieverAgent.js";
 
+function extractContent(response) {
+  if (typeof response?.content === "string") return response.content.trim();
+  if (Array.isArray(response?.content)) {
+    return response.content.map((part) => part.text || "").join("\n").trim();
+  }
+  return "";
+}
+
+async function getOptionalCourseContexts({ courseId, queryText, k = 10 }) {
+  if (!courseId) return [];
+
+  try {
+    return await retrieveRelevantContent({ courseId, question: queryText, k });
+  } catch (error) {
+    console.warn(`Study material retrieval skipped: ${error.message}`);
+    return [];
+  }
+}
+
 export async function generateStudyNotes({ courseId, courseTitle, topic }) {
   const queryText = topic === "all" ? courseTitle : `${courseTitle} ${topic}`;
-  const contexts = await retrieveRelevantContent({ courseId, question: queryText, k: 10 });
+  const contexts = await getOptionalCourseContexts({ courseId, queryText, k: 10 });
   
   let contextSnippet = "";
   if (contexts.length > 0) {
@@ -40,12 +59,12 @@ Generate the complete study notes:`;
     new HumanMessage(humanPrompt)
   ]);
 
-  return response.content || "";
+  return extractContent(response);
 }
 
 export async function generatePracticeGuide({ courseId, courseTitle, topic }) {
   const queryText = topic === "all" ? courseTitle : `${courseTitle} ${topic}`;
-  const contexts = await retrieveRelevantContent({ courseId, question: queryText, k: 10 });
+  const contexts = await getOptionalCourseContexts({ courseId, queryText, k: 10 });
   
   let contextSnippet = "";
   if (contexts.length > 0) {
@@ -83,5 +102,5 @@ Generate the exam-style Q&A guide:`;
     new HumanMessage(humanPrompt)
   ]);
 
-  return response.content || "";
+  return extractContent(response);
 }

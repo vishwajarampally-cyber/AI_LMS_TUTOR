@@ -76,7 +76,13 @@ export async function upsertChunks({ chunks, namespace, metadata }) {
   });
 
   const records = vectors.filter(Boolean);
-  if (!records.length) throw new Error("No document chunks could be embedded. Check the embedding model setup.");
+  if (!records.length) {
+    throw new Error(
+      `No document chunks could be embedded. ` +
+      `This may happen if the file contains no extractable text or if the embedding model does not support the document language. ` +
+      `For Hindi PDFs, use a multilingual embedding model via EMBEDDING_MODEL and re-upload.`
+    );
+  }
 
   for (let i = 0; i < records.length; i += UPSERT_BATCH_SIZE) {
     await index.namespace(namespace).upsert(records.slice(i, i + UPSERT_BATCH_SIZE));

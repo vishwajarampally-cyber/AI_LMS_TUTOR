@@ -122,7 +122,10 @@ export default function QuizCenter() {
     setError("");
     setAttempt(null);
     try {
-      const data = await api("/quizzes/generate", { method: "POST", body: JSON.stringify({ courseId }) });
+      const data = await api("/quizzes/generate", { 
+        method: "POST", 
+        body: JSON.stringify({ courseId, topic: topic !== "all" ? topic : undefined }) 
+      });
       setQuiz(data.quiz);
       setAnswers(data.quiz.questions.map(() => ({ answer: "" })));
       await loadBank();

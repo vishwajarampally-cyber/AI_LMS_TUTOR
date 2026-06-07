@@ -9,7 +9,9 @@ export function nextDifficulty(score) {
   return "medium";
 }
 
+
 export async function generateAdaptiveQuiz({ courseTitle, topics = [], difficulty = "medium" }) {
+  const isSingleTopic = topics.length === 1;
   const topicList = topics.length ? topics.join(", ") : "core syllabus units";
   const model = getChatModel({ temperature: 0.35 });
   const response = await model.invoke([
@@ -21,7 +23,8 @@ export async function generateAdaptiveQuiz({ courseTitle, topics = [], difficult
         "true_false = options must be True and False."
     ),
     new HumanMessage(
-      `Create a ${difficulty} quiz for "${courseTitle}" covering: ${topicList}.\n` +
+      `Create a ${difficulty} quiz for "${courseTitle}" ${isSingleTopic ? 'focusing strictly on the topic/unit' : 'covering'}: ${topicList}.\n` +
+        `Ensure all 10 questions generated are entirely related to: ${topicList}.\n` +
         "Exactly 10 questions with this mix: 4 mcq, 2 fill_blank, 2 msq, 2 true_false.\n" +
         'JSON: {"title":"","difficulty":"","questions":[{"type":"mcq|fill_blank|msq|true_false","prompt":"","options":[],"answer":"","topic":""}]}\n' +
         "Each mcq/msq needs 4 options. fill_blank answer is only the blank text. msq answer lists all correct options separated by commas."
@@ -34,9 +37,16 @@ export async function generateAdaptiveQuiz({ courseTitle, topics = [], difficult
     questions: []
   });
 
+  const normalizedQuestions = normalizeQuizQuestions(parsed.questions).map(q => {
+    // If questions don't have topic populated, assign the selected topic
+    if (!q.topic && isSingleTopic) q.topic = topics[0];
+    return q;
+  });
+
   return {
     title: parsed.title || `${courseTitle} Quiz`,
     difficulty: (parsed.difficulty || difficulty || "medium").toLowerCase(),
-    questions: normalizeQuizQuestions(parsed.questions).slice(0, 10)
+    questions: normalizedQuestions.slice(0, 10)
   };
 }
+
