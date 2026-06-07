@@ -9,9 +9,14 @@ const materialSchema = new mongoose.Schema(
     fileType: { type: String, enum: ["pdf", "docx", "ppt", "pptx"], required: true },
     fileSize: Number,
     storagePath: String,
+    chunks: [{
+      chunkIndex: Number,
+      text: String
+    }],
     chunkCount: { type: Number, default: 0 },
     pineconeNamespace: String,
     status: { type: String, enum: ["processing", "indexed", "failed"], default: "processing" },
+    indexWarning: String,
     error: String
   },
   { timestamps: true }
